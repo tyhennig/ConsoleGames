@@ -1,5 +1,5 @@
 #include <iostream>
-#include "olcConsoleGameEngine.h"
+#include "olcConsoleGameEngineGL.h"
 
 using namespace std;
 
@@ -17,7 +17,11 @@ struct Player
 {
 	float x;
 	float y;
+	float newX;
+	float newY;
 	float speed;
+	float fVelX;
+	float fVelY;
 	bool bJumped = false;
 };
 
@@ -51,7 +55,7 @@ protected:
 
 		player.speed = 30.0f;
 		player.x = ScreenWidth() / 2;
-		player.y = ScreenHeight() / 2;
+		player.y = ScreenHeight() / 2 - 1;
 
 
 		//Create World array of block types
@@ -85,21 +89,37 @@ protected:
 	virtual bool OnUserUpdate(float fElapsedTime)
 	{
 
+		player.fVelX = 0.0f;
+		player.fVelY = 0.0f;
+		player.newX = player.x;
+		player.newY = player.y;
 		
-		if (m_keys[VK_UP].bReleased)
-			player.bJumped = true;
+		if (m_keys[VK_UP].bHeld)
+			player.fVelY = -10.0f;
 		if (m_keys[VK_DOWN].bHeld)
 		{
-			if (aWorld[(((int)player.y) * ScreenWidth() + (int)player.x)].type == SKY)
-			{
-				player.y += player.speed * fElapsedTime;
-
-			}
+			player.fVelY = 10.0f;
 		}
 		if (m_keys[VK_LEFT].bHeld)
-			player.x -= player.speed * fElapsedTime;
+			player.fVelX = -10.0f;
 		if (m_keys[VK_RIGHT].bHeld)
-			player.x += player.speed * fElapsedTime;
+			player.fVelX = 10.0f;
+		if (GetKey(VK_SPACE).bHeld)
+		{
+			if (aWorld[((int)player.y + 1) * ScreenWidth() + (int)player.x - 1].type == DIRT || aWorld[((int)player.y + 1) * ScreenWidth() + (int)player.x].type == DIRT)
+			{
+				aWorld[((int)player.y + 1) * ScreenWidth() + (int)player.x].type = SKY;
+				aWorld[((int)player.y + 1) * ScreenWidth() + (int)player.x - 1].type = SKY;
+			}
+		}
+		player.newX += player.fVelX * fElapsedTime;
+		player.newY += player.fVelY * fElapsedTime;
+
+		//Collision
+		
+		
+
+
 
 		//Draw World
 		for (int i = 0; i < ScreenWidth() * ScreenHeight(); i++)
@@ -120,7 +140,18 @@ protected:
 
 
 		//Draw Player
-		Fill(player.x - 1, player.y - 2, player.x + 1, player.y, PIXEL_SOLID, FG_GREY);
+		if (player.x < 0)
+			player.x = 0;
+		if (player.x > ScreenWidth())
+			player.x = ScreenWidth();
+		if (player.y < 0)
+			player.y = 0;
+		if (player.y > ScreenHeight())
+			player.y = ScreenHeight();
+
+		
+
+		Fill(player.x - 1, player.y - 2, player.x + 1, player.y+1, PIXEL_SOLID, FG_GREY);
 
 
 
@@ -133,6 +164,6 @@ protected:
 int main()
 {
 	ConsoleDigger game;
-	game.ConstructConsole(180, 100, 8, 8);
+	game.ConstructConsole(160, 80, 8, 8);
 	game.Start();
 }
