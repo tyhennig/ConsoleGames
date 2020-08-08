@@ -3,6 +3,8 @@
 
 using namespace std;
 
+//Some Comments to add about the game and how it runs.
+
 struct Block
 {
 	int x;
